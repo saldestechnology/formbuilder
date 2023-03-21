@@ -268,10 +268,6 @@ export default function FormBuilder({ inputs }: FormBuilderProps) {
   );
 }
 
-export function labelSlug(input: Form) {
-  return input.label.toLowerCase().replace(/\s/g, "-");
-}
-
 export const mockInputs: InputType[] = [
   {
     id: "1",
