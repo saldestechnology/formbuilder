@@ -1,5 +1,5 @@
 import { isLabelable, isRequireable } from "@/utils/FormBuilder";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 
 interface PlaceholderOptionsProps {
@@ -107,11 +107,12 @@ function SelectOptions({ onSubmit }: SelectOptionsProps) {
   );
 }
 
-interface ImageOptionsProps {
+interface ImageOptionsProps extends Validatable {
   onChangeSrc: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onChangeAlt: (e: React.ChangeEvent<HTMLInputElement>) => void;
   src: string;
   alt: string;
+  id: string;
 }
 
 function ImageOptions({
@@ -119,15 +120,50 @@ function ImageOptions({
   onChangeAlt,
   src,
   alt,
+  validate,
+  removeValidation,
+  id,
 }: ImageOptionsProps) {
+  const [srcValid, setSrcValid] = useState<boolean>(true);
+  const handleSrcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSrcValid(e.target.value.startsWith("https://images.unsplash.com"));
+    if (srcValid && validate) validate(id, srcValid);
+    onChangeSrc(e);
+  };
+  useEffect(() => {
+    return () => {
+      if (removeValidation) removeValidation(id);
+    };
+  }, [removeValidation, id]);
   return (
     <div>
       <label>Image</label>
-      <input onChange={onChangeSrc} type="text" value={src} />
+      <input
+        className={srcValid ? "" : "danger"}
+        onChange={handleSrcChange}
+        type="text"
+        value={src}
+        formNoValidate={!srcValid}
+      />
+      {!srcValid && <p className="error">Image must be from unsplash</p>}
       <label>Alt</label>
       <input onChange={onChangeAlt} type="text" value={alt} />
+      <style jsx>{`
+        .error {
+          color: var(--color-danger);
+          font-size: 0.5rem;
+        }
+        .danger {
+          outline: 1px solid var(--color-danger);
+        }
+      `}</style>
     </div>
   );
+}
+
+interface InputValidation {
+  id: string;
+  valid: boolean;
 }
 
 interface AddInputProps {
@@ -139,12 +175,15 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   const [inputLabel, setInputLabel] = useState<string>("");
   const [isRequired, setIsRequired] = useState<boolean>(true);
   const [inputPlaceholder, setInputPlaceholder] = useState<string>("");
-  const [inputOptions, setInputOptions] = useState<string[]>([""]);
   const [heading, setHeading] = useState<string>("");
   const [paragraph, setParagraph] = useState<string>("");
   const [selectOptions, setSelectOptions] = useState<string[]>([""]);
   const [src, setSrc] = useState<string>("");
   const [alt, setAlt] = useState<string>("");
+  const [isValid, setIsValid] = useState<InputValidation[]>(
+    [] as InputValidation[]
+  );
+  const [isReady, setReady] = useState<boolean>(false);
 
   const commonProps = {
     id: uuid(),
@@ -164,9 +203,42 @@ export default function AddInput({ onSubmit }: AddInputProps) {
     setInputPlaceholder(e.target.value);
   };
 
-  const handleInputOptionsChange = (options: string[]) => {
-    setInputOptions(options);
+  const handleSelectOptionsChange = (options: string[]) => {
+    setSelectOptions(options);
   };
+
+  /**
+   * Validation logics.
+   */
+
+  const validate = (id: string, valid: boolean) => {
+    setIsValid((prev) => {
+      const index = prev.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return [...prev, { id, valid }];
+      }
+      return prev.map((item) => {
+        if (item.id === id) {
+          return { ...item, valid };
+        }
+        return item;
+      });
+    });
+    setReady(isValidated());
+  };
+
+  const isValidated = () => isValid.every((rule) => rule.valid);
+
+  const removeValidation = (id: string) => {
+    setIsValid((prev) => {
+      return prev.filter((item) => item.id !== id);
+    });
+    setReady(isValidated());
+  };
+
+  /**
+   * Export as object
+   */
 
   const makeInputType = (): InputType => {
     switch (inputType) {
@@ -206,7 +278,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
         return {
           ...commonProps,
           type: "select",
-          options: inputOptions,
+          options: selectOptions,
           required: isRequired,
           label: inputLabel,
         };
@@ -224,6 +296,8 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "image",
           src,
           alt,
+          validate,
+          removeValidation,
         };
       case "heading":
         return {
@@ -253,14 +327,14 @@ export default function AddInput({ onSubmit }: AddInputProps) {
       case "text":
         return (
           <PlaceholderOptions
-            onChange={(e) => setInputPlaceholder(e.target.value)}
+            onChange={handleInputPlaceholderChange}
             value={inputPlaceholder}
           />
         );
       case "email":
         return (
           <PlaceholderOptions
-            onChange={(e) => setInputPlaceholder(e.target.value)}
+            onChange={handleInputPlaceholderChange}
             value={inputPlaceholder}
           />
         );
@@ -285,10 +359,13 @@ export default function AddInput({ onSubmit }: AddInputProps) {
             onChangeAlt={(e) => setAlt(e.target.value)}
             src={src}
             alt={alt}
+            validate={validate}
+            removeValidation={removeValidation}
+            id={uuid().toString()}
           />
         );
       case "select":
-        return <SelectOptions onSubmit={handleInputOptionsChange} />;
+        return <SelectOptions onSubmit={handleSelectOptionsChange} />;
       default:
         return null;
     }
@@ -299,64 +376,65 @@ export default function AddInput({ onSubmit }: AddInputProps) {
     setInputLabel("");
     setIsRequired(true);
     setInputPlaceholder("");
-    setInputOptions([""]);
+    setSelectOptions([""]);
     setHeading("");
     setParagraph("");
-    setSelectOptions([""]);
     setSrc("");
     setAlt("");
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLButtonElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const input = makeInputType();
-    onSubmit(input);
-    resetAllStates();
+    if (!isValidated()) {
+      const input = makeInputType();
+      onSubmit(input);
+      resetAllStates();
+    }
   };
 
   return (
-    <>
-      <div>
+    <form noValidate onSubmit={handleSubmit}>
+      <label>
+        Type
+        <select
+          defaultValue={"text"}
+          value={inputType as string}
+          onChange={handleInputTypeChange}
+        >
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="date">Date</option>
+          <option value="email">Email</option>
+          <option value="select">Select</option>
+          <option value="radio">Radio</option>
+          <option value="checkbox">Checkbox</option>
+          <option value="image">Image</option>
+          <option value="heading">Heading</option>
+          <option value="paragraph">Paragraph</option>
+        </select>
+      </label>
+      {isLabelable(makeInputType()) && (
+        <input
+          type="text"
+          placeholder="Label"
+          onChange={handleInputLabelChange}
+          value={inputLabel}
+        />
+      )}
+      {selectedOptions()}
+      {isRequireable(makeInputType()) && (
         <label>
-          Type
-          <select
-            defaultValue={"text"}
-            value={inputType as string}
-            onChange={handleInputTypeChange}
-          >
-            <option value="text">Text</option>
-            <option value="number">Number</option>
-            <option value="date">Date</option>
-            <option value="email">Email</option>
-            <option value="select">Select</option>
-            <option value="radio">Radio</option>
-            <option value="checkbox">Checkbox</option>
-            <option value="image">Image</option>
-            <option value="heading">Heading</option>
-            <option value="paragraph">Paragraph</option>
-          </select>
-        </label>
-        {isLabelable(makeInputType()) && (
+          Is required?
           <input
-            type="text"
-            placeholder="Label"
-            onChange={handleInputLabelChange}
-            value={inputLabel}
+            type="checkbox"
+            onChange={(e) => setIsRequired(e.target.checked)}
+            checked={isRequired}
           />
-        )}
-        {selectedOptions()}
-        {isRequireable(makeInputType()) && (
-          <label>
-            Is required?
-            <input
-              type="checkbox"
-              onChange={(e) => setIsRequired(e.target.checked)}
-              checked={isRequired}
-            />
-          </label>
-        )}
-        <button onClick={handleSubmit}>Add input</button>
-      </div>
+        </label>
+      )}
+      <button disabled={isReady} type="submit">
+        Add input
+      </button>
       <style jsx>{`
         div {
           margin: 1rem 0;
@@ -365,6 +443,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           margin-left: 0.5rem;
         }
       `}</style>
-    </>
+    </form>
   );
 }

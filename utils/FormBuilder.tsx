@@ -205,6 +205,12 @@ function FormHeading({ text }: FormHeadingProps) {
 interface FormImageProps extends ImageElement {}
 
 function FormImage({ src, alt }: FormImageProps) {
+  if (!src.startsWith("https://images.unsplash.com")) {
+    <p>
+      Unsupported image. Image must be from{" "}
+      <a href="https://unsplash.com/">images.unsplash.com</a>
+    </p>;
+  }
   return (
     <div>
       <Image fill src={src} alt={alt} />

@@ -31,6 +31,11 @@ interface Labelable extends Form {
   label: string;
 }
 
+interface Validatable {
+  validate?: (id: string, valid: boolean) => void;
+  removeValidation?: (id: string) => void;
+}
+
 /**
  * Specific types
  */
@@ -50,7 +55,7 @@ interface HeadingElement extends Form {
   text: string;
 }
 
-interface ImageElement extends Form {
+interface ImageElement extends Form, Validatable {
   type: "image";
   src: string;
   alt: string;
