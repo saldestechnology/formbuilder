@@ -12,7 +12,6 @@ type PrimitiveTypes =
 interface Form {
   id: string;
   type: PrimitiveTypes;
-  label: string;
   onChange?: (e: React.ChangeEvent) => void;
 }
 
@@ -20,7 +19,11 @@ interface Requireable extends Form {
   required?: boolean;
 }
 
-interface Input extends Requireable {
+interface Labelable extends Form {
+  label: string;
+}
+
+interface Input extends Requireable, Labelable {
   type: string;
   placeholder: string;
 }
@@ -57,13 +60,13 @@ interface EmailInput extends Input {
   type: "email";
 }
 
-interface Select extends Requireable {
+interface Select extends Requireable, Labelable {
   type: "select";
   options: string[];
   defaultOption?: string;
 }
 
-interface Checkbox extends Requireable {
+interface Checkbox extends Requireable, Labelable {
   type: "checkbox";
   checked: boolean;
 }

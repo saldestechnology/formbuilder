@@ -41,6 +41,10 @@ export function isRequireable(input: Form): input is Requireable {
   return Object.hasOwnProperty.call(input, "required");
 }
 
+export function isLabelable(input: Form): input is Labelable {
+  return Object.hasOwnProperty.call(input, "label");
+}
+
 interface TextProps extends TextInput {}
 
 function FormText({ label, onChange, required }: TextProps) {

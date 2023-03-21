@@ -1,4 +1,4 @@
-import { isRequireable } from "@/utils/FormBuilder";
+import { isLabelable, isRequireable } from "@/utils/FormBuilder";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 
@@ -148,7 +148,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
 
   const commonProps = {
     id: uuid(),
-    label: inputLabel,
   };
 
   const handleInputTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -177,6 +176,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "text",
           placeholder: inputPlaceholder,
           required: isRequired,
+          label: inputLabel,
         };
       case "number":
         return {
@@ -184,6 +184,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "number",
           placeholder: inputPlaceholder,
           required: isRequired,
+          label: inputLabel,
         };
       case "date":
         return {
@@ -191,6 +192,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "date",
           placeholder: inputPlaceholder,
           required: isRequired,
+          label: inputLabel,
         };
       case "email":
         return {
@@ -198,6 +200,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "email",
           placeholder: inputPlaceholder,
           required: isRequired,
+          label: inputLabel,
         };
       case "select":
         return {
@@ -205,6 +208,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "select",
           options: inputOptions,
           required: isRequired,
+          label: inputLabel,
         };
       case "checkbox":
         return {
@@ -212,6 +216,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "checkbox",
           checked: false,
           required: isRequired,
+          label: inputLabel,
         };
       case "image":
         return {
@@ -238,6 +243,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "text",
           placeholder: inputPlaceholder,
           required: isRequired,
+          label: inputLabel,
         };
     }
   };
@@ -313,8 +319,11 @@ export default function AddInput({ onSubmit }: AddInputProps) {
       <div>
         <label>
           Type
-          <select value={inputType as string} onChange={handleInputTypeChange}>
-            <option value=""></option>
+          <select
+            defaultValue={"text"}
+            value={inputType as string}
+            onChange={handleInputTypeChange}
+          >
             <option value="text">Text</option>
             <option value="number">Number</option>
             <option value="date">Date</option>
@@ -327,7 +336,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
             <option value="paragraph">Paragraph</option>
           </select>
         </label>
-        {inputType !== "heading" && inputType !== "paragraph" && (
+        {isLabelable(makeInputType) && (
           <input
             type="text"
             placeholder="Label"
