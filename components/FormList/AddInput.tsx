@@ -336,7 +336,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
             <option value="paragraph">Paragraph</option>
           </select>
         </label>
-        {isLabelable(makeInputType) && (
+        {isLabelable(makeInputType()) && (
           <input
             type="text"
             placeholder="Label"
