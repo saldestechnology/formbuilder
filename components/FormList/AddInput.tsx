@@ -1,3 +1,4 @@
+import { isRequireable } from "@/utils/FormBuilder";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 
@@ -134,7 +135,7 @@ interface AddInputProps {
 }
 
 export default function AddInput({ onSubmit }: AddInputProps) {
-  const [inputType, setInputType] = useState<string>("");
+  const [inputType, setInputType] = useState<PrimitiveTypes | "">("");
   const [inputLabel, setInputLabel] = useState<string>("");
   const [isRequired, setIsRequired] = useState<boolean>(true);
   const [inputPlaceholder, setInputPlaceholder] = useState<string>("");
@@ -145,9 +146,13 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   const [src, setSrc] = useState<string>("");
   const [alt, setAlt] = useState<string>("");
 
+  const commonProps = {
+    id: uuid(),
+    label: inputLabel,
+  };
+
   const handleInputTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log(e.target.value);
-    setInputType(e.target.value);
+    setInputType(e.target.value as PrimitiveTypes);
   };
 
   const handleInputLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,47 +170,48 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   };
 
   const makeInputType = (): InputType => {
-    const commonProps = {
-      id: uuid(),
-      label: inputLabel,
-      required: isRequired,
-    };
     switch (inputType) {
       case "text":
         return {
           ...commonProps,
           type: "text",
           placeholder: inputPlaceholder,
+          required: isRequired,
         };
       case "number":
         return {
           ...commonProps,
           type: "number",
           placeholder: inputPlaceholder,
+          required: isRequired,
         };
       case "date":
         return {
           ...commonProps,
           type: "date",
           placeholder: inputPlaceholder,
+          required: isRequired,
         };
       case "email":
         return {
           ...commonProps,
           type: "email",
           placeholder: inputPlaceholder,
+          required: isRequired,
         };
       case "select":
         return {
           ...commonProps,
           type: "select",
           options: inputOptions,
+          required: isRequired,
         };
       case "checkbox":
         return {
           ...commonProps,
           type: "checkbox",
           checked: false,
+          required: isRequired,
         };
       case "image":
         return {
@@ -231,6 +237,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           ...commonProps,
           type: "text",
           placeholder: inputPlaceholder,
+          required: isRequired,
         };
     }
   };
@@ -306,7 +313,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
       <div>
         <label>
           Type
-          <select value={inputType} onChange={handleInputTypeChange}>
+          <select value={inputType as string} onChange={handleInputTypeChange}>
             <option value=""></option>
             <option value="text">Text</option>
             <option value="number">Number</option>
@@ -329,14 +336,16 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           />
         )}
         {selectedOptions()}
-        <label>
-          Is required?
-          <input
-            type="checkbox"
-            onChange={(e) => setIsRequired(e.target.checked)}
-            checked={isRequired}
-          />
-        </label>
+        {isRequireable(makeInputType()) && (
+          <label>
+            Is required?
+            <input
+              type="checkbox"
+              onChange={(e) => setIsRequired(e.target.checked)}
+              checked={isRequired}
+            />
+          </label>
+        )}
         <button onClick={handleSubmit}>Add input</button>
       </div>
       <style jsx>{`

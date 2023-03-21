@@ -37,6 +37,10 @@ function isImage(input: Form): input is ImageElement {
   return input.type === "image";
 }
 
+export function isRequireable(input: Form): input is Requireable {
+  return Object.hasOwnProperty.call(input, "required");
+}
+
 interface TextProps extends TextInput {}
 
 function FormText({ label, onChange, required }: TextProps) {

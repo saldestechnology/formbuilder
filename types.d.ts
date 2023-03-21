@@ -1,12 +1,28 @@
+type PrimitiveTypes =
+  | "text"
+  | "number"
+  | "date"
+  | "email"
+  | "select"
+  | "checkbox"
+  | "paragraph"
+  | "heading"
+  | "image";
+
 interface Form {
   id: string;
-  type: string;
+  type: PrimitiveTypes;
   label: string;
   onChange?: (e: React.ChangeEvent) => void;
 }
 
-interface Requireable {
+interface Requireable extends Form {
   required?: boolean;
+}
+
+interface Input extends Requireable {
+  type: string;
+  placeholder: string;
 }
 
 interface ParagraphElement extends Form {
@@ -25,11 +41,6 @@ interface ImageElement extends Form {
   alt: string;
 }
 
-interface Input extends Form, Requireable {
-  type: string;
-  placeholder: string;
-}
-
 interface TextInput extends Input {
   type: "text";
 }
@@ -46,13 +57,13 @@ interface EmailInput extends Input {
   type: "email";
 }
 
-interface Select extends Form, Requireable {
+interface Select extends Requireable {
   type: "select";
   options: string[];
   defaultOption?: string;
 }
 
-interface Checkbox extends Form, Requireable {
+interface Checkbox extends Requireable {
   type: "checkbox";
   checked: boolean;
 }
