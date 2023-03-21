@@ -47,7 +47,7 @@ export function isLabelable(input: Form): input is Labelable {
 
 interface TextProps extends TextInput {}
 
-function FormText({ label, onChange, required }: TextProps) {
+function FormText({ label, onChange, required, placeholder }: TextProps) {
   const [text, setText] = useState("");
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -59,6 +59,7 @@ function FormText({ label, onChange, required }: TextProps) {
         onChange={onChange ? onChange : handleChange}
         type="text"
         value={text}
+        placeholder={placeholder}
         required={required}
       />
     </div>
@@ -67,7 +68,12 @@ function FormText({ label, onChange, required }: TextProps) {
 
 interface FormNumberProps extends NumberInput {}
 
-function FormNumber({ label, onChange, required }: FormNumberProps) {
+function FormNumber({
+  label,
+  onChange,
+  required,
+  placeholder,
+}: FormNumberProps) {
   const [text, setText] = useState(0);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(parseInt(e.target.value, 10));
@@ -79,6 +85,7 @@ function FormNumber({ label, onChange, required }: FormNumberProps) {
         onChange={onChange ? onChange : handleChange}
         type="number"
         value={text}
+        placeholder={placeholder}
         required={required}
       />
     </div>
@@ -87,7 +94,7 @@ function FormNumber({ label, onChange, required }: FormNumberProps) {
 
 interface FormDateProps extends DateInput {}
 
-function FormDate({ label, onChange, required }: FormDateProps) {
+function FormDate({ label, onChange, required, placeholder }: FormDateProps) {
   const [text, setText] = useState("");
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -99,6 +106,7 @@ function FormDate({ label, onChange, required }: FormDateProps) {
         onChange={onChange ? onChange : handleChange}
         type="date"
         value={text}
+        placeholder={placeholder}
         required={required}
       />
     </div>
@@ -107,7 +115,7 @@ function FormDate({ label, onChange, required }: FormDateProps) {
 
 interface FormEmailProps extends EmailInput {}
 
-function FormEmail({ label, onChange, required }: FormEmailProps) {
+function FormEmail({ label, onChange, required, placeholder }: FormEmailProps) {
   const [text, setText] = useState("");
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -119,6 +127,7 @@ function FormEmail({ label, onChange, required }: FormEmailProps) {
         onChange={onChange ? onChange : handleChange}
         type="email"
         value={text}
+        placeholder={placeholder}
         required={required}
       />
     </div>
@@ -195,10 +204,9 @@ function FormHeading({ text }: FormHeadingProps) {
 
 interface FormImageProps extends ImageElement {}
 
-function FormImage({ src, alt, label }: FormImageProps) {
+function FormImage({ src, alt }: FormImageProps) {
   return (
     <div>
-      <label>{label}</label>
       <Image fill src={src} alt={alt} />
       <style jsx>{`
         div {
