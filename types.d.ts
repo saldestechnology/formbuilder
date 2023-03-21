@@ -1,3 +1,7 @@
+/**
+ * Basic types
+ */
+
 type PrimitiveTypes =
   | "text"
   | "number"
@@ -15,6 +19,10 @@ interface Form {
   onChange?: (e: React.ChangeEvent) => void;
 }
 
+/**
+ * Extra functionality for inputs
+ */
+
 interface Requireable extends Form {
   required?: boolean;
 }
@@ -22,6 +30,10 @@ interface Requireable extends Form {
 interface Labelable extends Form {
   label: string;
 }
+
+/**
+ * Specific types
+ */
 
 interface Input extends Requireable, Labelable {
   type: string;
