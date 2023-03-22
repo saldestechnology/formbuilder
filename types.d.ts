@@ -16,7 +16,6 @@ type PrimitiveTypes =
 interface Form {
   id: string;
   type: PrimitiveTypes;
-  onChange?: (e: React.ChangeEvent) => void;
 }
 
 /**
@@ -31,9 +30,35 @@ interface Labelable extends Form {
   label: string;
 }
 
-interface Validatable {
-  validate?: (id: string, valid: boolean) => void;
-  removeValidation?: (id: string) => void;
+/**
+ * Validation
+ */
+
+interface Operator {
+  name: string;
+  fn: (a: number, b: number) => boolean;
+}
+
+interface NumberValidation {
+  type: "number";
+  operator: "eq" | "neq" | "gt" | "lt" | "gte" | "lte";
+  value: number;
+}
+
+interface StringValidation {
+  type: "string";
+  condition: "startsWith" | "endsWith" | "includes";
+  value: string;
+}
+
+interface Validation {
+  schema: NumberValidation | StringValidation;
+  message: string;
+  valid?: boolean;
+}
+
+interface Validatable extends Form {
+  validation?: Validation[];
 }
 
 /**
@@ -55,13 +80,13 @@ interface HeadingElement extends Form {
   text: string;
 }
 
-interface ImageElement extends Form, Validatable {
+interface ImageElement extends Validatable {
   type: "image";
   src: string;
   alt: string;
 }
 
-interface TextInput extends Input {
+interface TextInput extends Input, Validatable {
   type: "text";
 }
 

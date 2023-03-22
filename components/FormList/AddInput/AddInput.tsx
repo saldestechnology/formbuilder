@@ -1,177 +1,36 @@
-import { isLabelable, isRequireable } from "@/utils/FormBuilder";
-import { useEffect, useRef, useState } from "react";
+import { isRequireable } from "@/utils/FormBuilder";
+import { useState } from "react";
 import { v4 as uuid } from "uuid";
-
-interface PlaceholderOptionsProps {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  value: string;
-}
-
-function PlaceholderOptions({ onChange, value }: PlaceholderOptionsProps) {
-  return (
-    <div>
-      <label>Placeholder</label>
-      <input onChange={onChange} type="text" value={value} />
-    </div>
-  );
-}
-
-interface HeadingOptionsProps {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  value: string;
-}
-
-function HeadingOptions({ onChange, value }: HeadingOptionsProps) {
-  return (
-    <div>
-      <label>Heading</label>
-      <input onChange={onChange} type="text" value={value} />
-    </div>
-  );
-}
-
-interface ParagraphOptionsProps {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  value: string;
-}
-
-function ParagraphOptions({ onChange, value }: ParagraphOptionsProps) {
-  return (
-    <div>
-      <label>Paragraph</label>
-      <input onChange={onChange} type="text" value={value} />
-    </div>
-  );
-}
-
-interface SelectOptionsProps {
-  onSubmit: (options: string[]) => void;
-}
-
-interface SelectOption {
-  id: string;
-  value: string;
-}
-
-function SelectOptions({ onSubmit }: SelectOptionsProps) {
-  const [options, setOptions] = useState<SelectOption[]>([
-    { id: "1", value: "" },
-  ]);
-  const addInput = () => {
-    setOptions((prev) => {
-      return [
-        ...prev,
-        {
-          id: `${prev.length + 1}`,
-          value: "",
-        },
-      ];
-    });
-  };
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOptions((prev) => {
-      return prev.map((option) => {
-        if (option.id === e.target.id) {
-          return { ...option, value: e.target.value };
-        }
-        return option;
-      });
-    });
-    onSubmit(options.map((option) => option.value));
-  };
-  const removeLastElementOption = () => {
-    setOptions(options.slice(0, -1));
-  };
-  return (
-    <div>
-      <label>Options</label>
-      {options.map((option, index) => (
-        <input
-          id={option.id}
-          key={index}
-          onChange={onChange}
-          type="text"
-          value={option.value}
-          required
-        />
-      ))}
-      <div className="grid">
-        <div>
-          <button onClick={addInput}>Add</button>
-        </div>
-        <div>
-          <button onClick={removeLastElementOption}>Remove</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ImageOptionsProps extends Validatable {
-  onChangeSrc: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onChangeAlt: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  src: string;
-  alt: string;
-  id: string;
-}
-
-function ImageOptions({
-  onChangeSrc,
-  onChangeAlt,
-  src,
-  alt,
-  validate,
-  removeValidation,
-  id,
-}: ImageOptionsProps) {
-  const [srcValid, setSrcValid] = useState<boolean>(true);
-  const handleSrcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSrcValid(e.target.value.startsWith("https://images.unsplash.com"));
-    if (srcValid && validate) validate(id, srcValid);
-    onChangeSrc(e);
-  };
-  useEffect(() => {
-    return () => {
-      if (removeValidation) removeValidation(id);
-    };
-  }, [removeValidation, id]);
-  return (
-    <div>
-      <label>Image</label>
-      <input
-        className={srcValid ? "" : "danger"}
-        onChange={handleSrcChange}
-        type="text"
-        value={src}
-        formNoValidate={!srcValid}
-      />
-      {!srcValid && <p className="error">Image must be from unsplash</p>}
-      <label>Alt</label>
-      <input onChange={onChangeAlt} type="text" value={alt} />
-      <style jsx>{`
-        .error {
-          color: var(--color-danger);
-          font-size: 0.5rem;
-        }
-        .danger {
-          outline: 1px solid var(--color-danger);
-        }
-      `}</style>
-    </div>
-  );
-}
-
-interface InputValidation {
-  id: string;
-  valid: boolean;
-}
+import { AddInputLabel } from "./AddInputLabel";
+import {
+  HeadingOptions,
+  ImageOptionsAlt,
+  ImageOptionsSrc,
+  ParagraphOptions,
+  PlaceholderOptions,
+  SelectOptions,
+} from "./options";
 
 interface AddInputProps {
   onSubmit: (input: Form) => void;
 }
 
+/**
+ * This is a parent component which acts as an encoder from the UI to
+ * our object representation of an input in a form.
+ * This is achieved by first selecting the type of object you wish to
+ * construct. Since each property of an input field as defined by the
+ * HTML standard is unique so is also each input field (this will be
+ * important later). Input fields available to the user is defined in
+ * accordance with the interface that a particular type implements.
+ *
+ * In this component we also apply a validation layer. This validation
+ * layer relies on an interface with an id that represents the unique
+ * input fields. Because an input is unique within this encoder we're
+ * able to attach validation schemas to the input object.
+ */
 export default function AddInput({ onSubmit }: AddInputProps) {
-  const [inputType, setInputType] = useState<PrimitiveTypes | "">("");
+  const [inputType, setInputType] = useState<PrimitiveTypes>("text");
   const [inputLabel, setInputLabel] = useState<string>("");
   const [isRequired, setIsRequired] = useState<boolean>(true);
   const [inputPlaceholder, setInputPlaceholder] = useState<string>("");
@@ -180,9 +39,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   const [selectOptions, setSelectOptions] = useState<string[]>([""]);
   const [src, setSrc] = useState<string>("");
   const [alt, setAlt] = useState<string>("");
-  const [isValid, setIsValid] = useState<InputValidation[]>(
-    [] as InputValidation[]
-  );
   const [isReady, setReady] = useState<boolean>(false);
 
   const commonProps = {
@@ -190,7 +46,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   };
 
   const handleInputTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setInputType(e.target.value as PrimitiveTypes);
+    setInputType(e.currentTarget.value as PrimitiveTypes);
   };
 
   const handleInputLabelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,31 +67,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
    * Validation logics.
    */
 
-  const validate = (id: string, valid: boolean) => {
-    setIsValid((prev) => {
-      const index = prev.findIndex((item) => item.id === id);
-      if (index === -1) {
-        return [...prev, { id, valid }];
-      }
-      return prev.map((item) => {
-        if (item.id === id) {
-          return { ...item, valid };
-        }
-        return item;
-      });
-    });
-    setReady(isValidated());
-  };
-
-  const isValidated = () => isValid.every((rule) => rule.valid);
-
-  const removeValidation = (id: string) => {
-    setIsValid((prev) => {
-      return prev.filter((item) => item.id !== id);
-    });
-    setReady(isValidated());
-  };
-
   /**
    * Export as object
    */
@@ -249,6 +80,24 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           placeholder: inputPlaceholder,
           required: isRequired,
           label: inputLabel,
+          validation: [
+            {
+              schema: {
+                type: "string",
+                condition: "startsWith",
+                value: "https://images.unsplash.com",
+              },
+              message: "Have to start with 'https://images.unsplash.com'",
+            },
+            {
+              schema: {
+                type: "string",
+                condition: "endsWith",
+                value: "/",
+              },
+              message: "Have to end with '/'",
+            },
+          ],
         };
       case "number":
         return {
@@ -296,8 +145,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           type: "image",
           src,
           alt,
-          validate,
-          removeValidation,
         };
       case "heading":
         return {
@@ -354,15 +201,16 @@ export default function AddInput({ onSubmit }: AddInputProps) {
         );
       case "image":
         return (
-          <ImageOptions
-            onChangeSrc={(e) => setSrc(e.target.value)}
-            onChangeAlt={(e) => setAlt(e.target.value)}
-            src={src}
-            alt={alt}
-            validate={validate}
-            removeValidation={removeValidation}
-            id={uuid().toString()}
-          />
+          <>
+            <ImageOptionsSrc
+              onChange={(e) => setSrc(e.target.value)}
+              value={src}
+            />
+            <ImageOptionsAlt
+              onChange={(e) => setAlt(e.target.value)}
+              value={alt}
+            />
+          </>
         );
       case "select":
         return <SelectOptions onSubmit={handleSelectOptionsChange} />;
@@ -372,7 +220,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   };
 
   const resetAllStates = () => {
-    setInputType("");
+    setInputType("text");
     setInputLabel("");
     setIsRequired(true);
     setInputPlaceholder("");
@@ -385,15 +233,13 @@ export default function AddInput({ onSubmit }: AddInputProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!isValidated()) {
-      const input = makeInputType();
-      onSubmit(input);
-      resetAllStates();
-    }
+    const input = makeInputType();
+    onSubmit(input);
+    resetAllStates();
   };
 
   return (
-    <form noValidate onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <label>
         Type
         <select
@@ -413,14 +259,11 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           <option value="paragraph">Paragraph</option>
         </select>
       </label>
-      {isLabelable(makeInputType()) && (
-        <input
-          type="text"
-          placeholder="Label"
-          onChange={handleInputLabelChange}
-          value={inputLabel}
-        />
-      )}
+      <AddInputLabel
+        type={makeInputType()}
+        onChange={handleInputLabelChange}
+        value={inputLabel}
+      />
       {selectedOptions()}
       {isRequireable(makeInputType()) && (
         <label>

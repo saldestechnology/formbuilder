@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
+import useValidation from "./useValidation";
 
 function isText(input: Form): input is TextInput {
   return input.type === "text";
@@ -45,28 +46,74 @@ export function isLabelable(input: Form): input is Labelable {
   return Object.hasOwnProperty.call(input, "label");
 }
 
-interface TextProps extends TextInput {}
+export function isValidatable(input: Form): input is Validatable {
+  return Object.hasOwnProperty.call(input, "validation");
+}
 
-function FormText({ label, onChange, required, placeholder }: TextProps) {
+interface ListReadableValidationErrorsProps {
+  validations: Validation[];
+}
+
+function ListReadableValidationErrors({
+  validations,
+}: ListReadableValidationErrorsProps) {
+  return (
+    <ul>
+      {validations.map((validation, index) =>
+        !validation.valid ? (
+          <li key={`${validation.schema.type}-${index}`}>
+            {validation.message}
+          </li>
+        ) : null
+      )}
+    </ul>
+  );
+}
+
+interface TextProps extends TextInput {
+  onChange?: (e: React.ChangeEvent) => void;
+}
+
+function FormText({
+  label,
+  onChange,
+  required,
+  placeholder,
+  validation = [],
+}: TextProps) {
   const [text, setText] = useState("");
+  const validated = useValidation(validation, text);
+  console.log({ text });
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
+
+  const className = useCallback(() => {
+    if (validated === undefined) {
+      return "";
+    }
+    return validated.every((v) => v.valid) ? "" : "danger";
+  }, [validated]);
+
   return (
     <div>
       <label>{label}</label>
       <input
+        className={className()}
         onChange={onChange ? onChange : handleChange}
         type="text"
         value={text}
         placeholder={placeholder}
         required={required}
       />
+      <ListReadableValidationErrors validations={validated} />
     </div>
   );
 }
 
-interface FormNumberProps extends NumberInput {}
+interface FormNumberProps extends NumberInput {
+  onChange?: (e: React.ChangeEvent) => void;
+}
 
 function FormNumber({
   label,
@@ -92,7 +139,9 @@ function FormNumber({
   );
 }
 
-interface FormDateProps extends DateInput {}
+interface FormDateProps extends DateInput {
+  onChange?: (e: React.ChangeEvent) => void;
+}
 
 function FormDate({ label, onChange, required, placeholder }: FormDateProps) {
   const [text, setText] = useState("");
@@ -113,7 +162,9 @@ function FormDate({ label, onChange, required, placeholder }: FormDateProps) {
   );
 }
 
-interface FormEmailProps extends EmailInput {}
+interface FormEmailProps extends EmailInput {
+  onChange?: (e: React.ChangeEvent) => void;
+}
 
 function FormEmail({ label, onChange, required, placeholder }: FormEmailProps) {
   const [text, setText] = useState("");
@@ -134,7 +185,9 @@ function FormEmail({ label, onChange, required, placeholder }: FormEmailProps) {
   );
 }
 
-interface FormSelectProps extends Select {}
+interface FormSelectProps extends Select {
+  onChange?: (e: React.ChangeEvent) => void;
+}
 
 function FormSelect({
   label,
@@ -165,7 +218,9 @@ function FormSelect({
   );
 }
 
-interface FormCheckboxProps extends Checkbox {}
+interface FormCheckboxProps extends Checkbox {
+  onChange?: (e: React.ChangeEvent) => void;
+}
 
 function FormCheckbox({
   label,
