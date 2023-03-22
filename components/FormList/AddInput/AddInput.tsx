@@ -1,4 +1,4 @@
-import { isRequireable } from "@/utils/FormBuilder";
+import { isRequireable, isValidatable } from "@/utils/FormBuilder";
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 import { AddInputLabel } from "./AddInputLabel";
@@ -15,20 +15,6 @@ interface AddInputProps {
   onSubmit: (input: Form) => void;
 }
 
-/**
- * This is a parent component which acts as an encoder from the UI to
- * our object representation of an input in a form.
- * This is achieved by first selecting the type of object you wish to
- * construct. Since each property of an input field as defined by the
- * HTML standard is unique so is also each input field (this will be
- * important later). Input fields available to the user is defined in
- * accordance with the interface that a particular type implements.
- *
- * In this component we also apply a validation layer. This validation
- * layer relies on an interface with an id that represents the unique
- * input fields. Because an input is unique within this encoder we're
- * able to attach validation schemas to the input object.
- */
 export default function AddInput({ onSubmit }: AddInputProps) {
   const [inputType, setInputType] = useState<PrimitiveTypes>("text");
   const [inputLabel, setInputLabel] = useState<string>("");
@@ -275,6 +261,7 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           />
         </label>
       )}
+      {isValidatable(makeInputType()) && <div />}
       <button disabled={isReady} type="submit">
         Add input
       </button>
