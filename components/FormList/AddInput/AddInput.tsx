@@ -50,10 +50,6 @@ export default function AddInput({ onSubmit }: AddInputProps) {
   };
 
   /**
-   * Validation logics.
-   */
-
-  /**
    * Export as object
    */
 
