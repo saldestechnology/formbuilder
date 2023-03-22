@@ -83,7 +83,6 @@ function FormText({
 }: TextProps) {
   const [text, setText] = useState("");
   const validated = useValidation(validation, text);
-  console.log({ text });
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
   };
@@ -120,21 +119,33 @@ function FormNumber({
   onChange,
   required,
   placeholder,
+  validation = [],
 }: FormNumberProps) {
-  const [text, setText] = useState(0);
+  const [number, setNumber] = useState(0);
+  const validated = useValidation(validation, number);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(parseInt(e.target.value, 10));
+    setNumber(parseInt(e.target.value, 10));
   };
+
+  const className = useCallback(() => {
+    if (validated === undefined) {
+      return "";
+    }
+    return validated.every((v) => v.valid) ? "" : "danger";
+  }, [validated]);
+
   return (
     <div>
       <label>{label}</label>
       <input
+        className={className()}
         onChange={onChange ? onChange : handleChange}
         type="number"
-        value={text}
+        value={number}
         placeholder={placeholder}
         required={required}
       />
+      <ListReadableValidationErrors validations={validated} />
     </div>
   );
 }

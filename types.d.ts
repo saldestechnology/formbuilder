@@ -90,7 +90,7 @@ interface TextInput extends Input, Validatable {
   type: "text";
 }
 
-interface NumberInput extends Input {
+interface NumberInput extends Input, Validatable {
   type: "number";
 }
 

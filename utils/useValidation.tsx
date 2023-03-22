@@ -42,13 +42,23 @@ export default function useValidation(
             validation.schema.type === "number"
           ) {
             const { operator, value } = validation.schema;
-            setResult((prev) => [
-              ...prev,
-              {
-                ...validation,
-                valid: createNumberValidator(operator, input)(value),
-              },
-            ]);
+            setResult((prev) =>
+              prev.map((v) => {
+                if (
+                  v.schema.type === "number" &&
+                  validation.schema.type === "number"
+                ) {
+                  if (v.schema.operator === validation.schema.operator) {
+                    let valid = createNumberValidator(operator, input)(value);
+                    return {
+                      ...v,
+                      valid,
+                    };
+                  }
+                }
+                return v;
+              })
+            );
           }
       }
     });

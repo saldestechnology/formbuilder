@@ -92,6 +92,16 @@ export default function AddInput({ onSubmit }: AddInputProps) {
           placeholder: inputPlaceholder,
           required: isRequired,
           label: inputLabel,
+          validation: [
+            {
+              schema: {
+                type: "number",
+                operator: "gt",
+                value: 10,
+              },
+              message: "Have to be greater than 10",
+            },
+          ],
         };
       case "date":
         return {
